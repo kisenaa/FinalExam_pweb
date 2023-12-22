@@ -1,0 +1,91 @@
+@page "/sign-up"
+@layout NullLayout
+<div class="h-screen w-screen flex justify-center items-center bg-cover bg-no-repeat bg-center overflow-y-auto overflow-x-auto" 
+    style="background-image: url(images/bg.webp);">
+
+    <div class="bg-white p-2 rounded-2xl">
+        <h3 class="pt-4 text-2xl font-semibold text-center">Create your Account</h3>
+        <form class="px-8 pt-6 mb-4 bg-white rounded">
+            <div class="mb-4 md:mr-2 md:mb-0 pb-3">
+                <label class="block mb-2 text-sm font-bold text-gray-700">
+                    Username
+                </label>
+                <input
+                    class="w-full px-3 py-2 text-sm leading-tight text-gray-700 hover:border-blue-500 border rounded shadow appearance-none focus:outline-none focus:shadow-outline"
+                    id="username"
+                    type="text"
+                    placeholder="Username"
+                    aria-required="true"
+                    @bind="@Username"
+                    @oninput="@((e) => {Username=(string)e.Value!;})"
+                />
+            </div>
+            <div class="mb-4 md:mr-2 md:mb-0 pb-3">
+                <label class="block mb-2 text-sm font-bold text-gray-700">
+                    Email
+                </label>
+                <input
+                    class="w-full px-3 py-2 mb-3 text-sm leading-tight text-gray-700 hover:border-blue-500 border rounded shadow appearance-none focus:outline-none focus:shadow-outline"
+                    id="email"
+                    type="email"
+                    placeholder="Email"
+                    aria-required="true"
+                    @bind="@Email"
+                    @oninput="@((e) => {Email=(string)e.Value!;})"
+                />
+            </div>
+
+            <div class="mb-4 md:flex">
+                <div class="mb-4 md:mr-2 md:mb-0">
+                    <label class="block mb-2 text-sm font-bold text-gray-700" for="password">
+                        Password
+                    </label>
+                    <input
+                        class="w-full px-3 py-2 mb-3 text-sm leading-tight text-gray-700 hover:border-cyan-300 border border-red-500 rounded shadow appearance-none focus:outline-none focus:shadow-outline"
+                        id="psd"
+                        type="password"
+                        aria-required="true"
+                        @bind="@Password"
+                        @oninput="@((e) => {Password=(string)e.Value!;})"
+                    />
+                    <p class="text-xs italic text-red-500">password must contain 8 or more characters.</p>
+                </div>
+            </div>
+                <span class="relative float-right mr-4 -mt-[70px] text-gray-500 hover:text-black">
+                    <button class="max-h-1 hover:border-spacing-1" onclick="event.preventDefault();if (psd.type == 'text') psd.type = 'password';else psd.type = 'text';">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 22 22" width="22" height="17"><path fill="currentColor" d="M11 13.2a2.2 2.2 0 1 0 0 -4.4 2.2 2.2 0 0 0 0 4.4Z"/><path fill="currentColor" fill-rule="evenodd" d="M0.506 11a11 11 0 0 1 20.988 0A11 11 0 0 1 0.506 11ZM15.4 11a4.4 4.4 0 1 1 -8.8 0 4.4 4.4 0 0 1 8.8 0Z" clip-rule="evenodd"/></svg>
+                    </button>
+                </span>
+
+            <div class="mb-6 text-center">
+                <button
+                    class="w-full px-4 py-2 font-bold text-white text-sm bg-blue-600 rounded-full hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+                    type="button"
+                    @onclick:preventDefault="true"                    
+                    @onclick="HandleClick"
+                >
+                    Register Account
+                </button>
+            </div>
+            <hr class="mb-2 border-t" />
+            <div class="text-center pt-1">
+                <a class="inline-block text-sm text-blue-500 align-baseline hover:text-blue-800" href="login">
+                    Already have an account? Sign in
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@code {
+    private string? Username {get;set;} 
+    private string? Email {get;set;} 
+    private string? Password {get;set;}
+
+    private void HandleClick() {
+        Console.WriteLine(Username);
+        Console.WriteLine(Email);
+        Console.WriteLine(Password);
+    }
+
+} 
