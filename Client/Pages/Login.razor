@@ -1,7 +1,9 @@
 @page "/login"
+@using Client.Models
 @layout NullLayout
 @inject HttpClient Http
-@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject NavigationManager Navigation
+@inject ILocalStorageService LocalStorage
 
 <div class="h-screen w-screen relative flex justify-center items-center bg-cover bg-no-repeat bg-center backdrop-blur-sm" 
     style="background-image: url(images/bg.webp);">
@@ -10,7 +12,7 @@
         <h3 class="pt-4 text-xl font-semibold text-center mb-4">Login to your Account</h3>
         <form class="px-8 pt-6 mb-4 bg-white rounded">
             <div class="mb-4 md:mr-2 md:mb-0 pb-3">
-                <label class="block mb-2 text-sm font-bold text-gray-700">
+                <label class="block mb-2 text-sm font-bold text-gray-700" for="username">
                     Email address or Username
                 </label>
                 <input
@@ -19,8 +21,9 @@
                     type="text"
                     placeholder="Email or Username"
                     aria-required="true"
-                    @bind="@identityInput"
-                    @oninput="@((e) => {identityInput=(string)e.Value!;})"
+                    @bind="@IdentityInput"
+                    @oninput="@((e) => {IdentityInput=(string)e.Value!;})"
+                    required
                 />
             </div>
             <div class="mb-4 md:flex">
@@ -35,25 +38,31 @@
                         aria-required="true"
                         @bind="@Password"
                         @oninput="@((e) => {Password=(string)e.Value!;})"
+                        required
                     />
-                    <p class="@((@wrongAttempt == true) ? "" : "invisible") text-xs italic text-red-500">Wrong cridentials !</p>
+                    <p class="@(WrongAttempt ? "" : "invisible") text-xs italic text-red-500">Wrong cridentials !</p>
                 </div>
             </div>
-                <span class="@((@wrongAttempt == true) ? "-mt-[70px]" : "-mt-[55px]")  relative float-right mr-4 -mt-[55px] text-gray-500 hover:text-black">
+                <span class="-mt-[70px] relative float-right mr-4 text-gray-500 hover:text-black">
                     <button class="max-h-1 hover:border-spacing-1" onclick="event.preventDefault();if (psd.type == 'text') psd.type = 'password';else psd.type = 'text';">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 22 22" width="22" height="17"><path fill="currentColor" d="M11 13.2a2.2 2.2 0 1 0 0 -4.4 2.2 2.2 0 0 0 0 4.4Z"/><path fill="currentColor" fill-rule="evenodd" d="M0.506 11a11 11 0 0 1 20.988 0A11 11 0 0 1 0.506 11ZM15.4 11a4.4 4.4 0 1 1 -8.8 0 4.4 4.4 0 0 1 8.8 0Z" clip-rule="evenodd"/></svg>
                     </button>
                 </span>
 
             <div class="mb-6 text-center">
+                @if(IsLoading) {
+                    <div class="w-full px-4 py-2 font-bold text-white text-sm bg-yellow-400 rounded-full hover:bg-yellow-500 focus:outline-none focus:shadow-outline">
+                    Loading....
+                    </div>
+                } else {
                 <button
                     class="w-full px-4 py-2 font-bold text-white text-sm bg-blue-600 rounded-full hover:bg-blue-700 focus:outline-none focus:shadow-outline"
                     type="button"
                     @onclick:preventDefault="true"                    
-                    @onclick="HandleLogin"
-                >
+                    @onclick="HandleLogin">
                     Login
                 </button>
+                }
             </div>
             <hr class="mb-2 border-t-2" />
             <div class="text-center pt-1">
@@ -66,48 +75,51 @@
 </div>
 
 @code {
-    private string? identityInput {get;set;} 
+    private string? IdentityInput {get;set;} 
     private string? Password {get;set;}
-    private bool wrongAttempt {get;set;} = false;
-
-    private string? jwtToken;
-
+    private bool WrongAttempt {get;set;} = false;
+    private bool IsLoading {get; set;} = false;
     private async void HandleLogin() {
-        string apiUrl = "http://localhost:5227/api/User/Login";
+        string apiUrl = "http://localhost:5227/api/Login";
 
-        var loginData = new
-        {
-            identityInput,
-            Password
-        };
+        var loginData = new { identityInput = IdentityInput, Password };
+        IsLoading = true;
+        StateHasChanged();
         // Serialize the loginData object to JSON
         try{
             var loginJson = new StringContent(JsonSerializer.Serialize(loginData), System.Text.Encoding.UTF8, "application/json");
-            HttpResponseMessage response = await Http.PostAsync(apiUrl, loginJson);
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Post,
+                RequestUri = new Uri(apiUrl),
+                Content = loginJson
+            };
+            request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+            HttpResponseMessage response = await Http.SendAsync(request);
+            IsLoading = false;
             if (response.IsSuccessStatusCode)
-                {
-                    string responseData = await response.Content.ReadAsStringAsync();
-                    await localStorage.SetItemAsync("jwt_final_exams", responseData);
-                }
+            {
+                IsLoading = false;
+                WrongAttempt = false;
+                string responseData = await response.Content.ReadAsStringAsync();
+                var responseObj = JsonSerializer.Deserialize<LoginResponse>(responseData);
+                await LocalStorage.SetItemAsync("jwt_final_exams", responseObj?.token);
+                await LocalStorage.SetItemAsync("userId_final_exams", responseObj?.userId);
+                Navigation.NavigateTo("/dashboard");
+            }
             else
-                {
-                    wrongAttempt = true;
-                    Console.WriteLine("false");
-                    StateHasChanged();
-                }
-            } 
-        catch {
-            wrongAttempt = true;
-            return;
+            {
+                IsLoading = false;
+                WrongAttempt = true;
+                StateHasChanged();
+            }
+        } 
+        catch (Exception ex)
+        {
+            WrongAttempt = true;
+            IsLoading = false;
+            StateHasChanged();
+            Console.WriteLine(ex.Message);
         }
     }
-
-    protected override async Task OnInitializedAsync()
-    {
-        string apiUrl = "http://localhost:5227/api/User/test";
-        HttpResponseMessage response = await Http.GetAsync(apiUrl);
-        string responseData = await response.Content.ReadAsStringAsync();
-        Console.WriteLine(responseData);
-    }
-
 } 

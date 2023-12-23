@@ -1,5 +1,8 @@
 @page "/sign-up"
 @layout NullLayout
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
 <div class="h-screen w-screen flex justify-center items-center bg-cover bg-no-repeat bg-center overflow-y-auto overflow-x-auto" 
     style="background-image: url(images/bg.webp);">
 
@@ -7,7 +10,7 @@
         <h3 class="pt-4 text-2xl font-semibold text-center">Create your Account</h3>
         <form class="px-8 pt-6 mb-4 bg-white rounded">
             <div class="mb-4 md:mr-2 md:mb-0 pb-3">
-                <label class="block mb-2 text-sm font-bold text-gray-700">
+                <label class="block mb-2 text-sm font-bold text-gray-700" for="username">
                     Username
                 </label>
                 <input
@@ -18,10 +21,11 @@
                     aria-required="true"
                     @bind="@Username"
                     @oninput="@((e) => {Username=(string)e.Value!;})"
+                    required
                 />
             </div>
             <div class="mb-4 md:mr-2 md:mb-0 pb-3">
-                <label class="block mb-2 text-sm font-bold text-gray-700">
+                <label class="block mb-2 text-sm font-bold text-gray-700" for="email">
                     Email
                 </label>
                 <input
@@ -32,6 +36,7 @@
                     aria-required="true"
                     @bind="@Email"
                     @oninput="@((e) => {Email=(string)e.Value!;})"
+                    required
                 />
             </div>
 
@@ -47,6 +52,8 @@
                         aria-required="true"
                         @bind="@Password"
                         @oninput="@((e) => {Password=(string)e.Value!;})"
+                        minlength="8"
+                        required
                     />
                     <p class="text-xs italic text-red-500">password must contain 8 or more characters.</p>
                 </div>
@@ -58,14 +65,19 @@
                 </span>
 
             <div class="mb-6 text-center">
+                @if(@IsLoading) {
+                    <div class="w-full px-4 py-2 font-bold text-white text-sm bg-yellow-400 rounded-full hover:bg-yellow-500 focus:outline-none focus:shadow-outline">
+                        Loading
+                    </div>
+                } else {
                 <button
                     class="w-full px-4 py-2 font-bold text-white text-sm bg-blue-600 rounded-full hover:bg-blue-700 focus:outline-none focus:shadow-outline"
                     type="button"
                     @onclick:preventDefault="true"                    
-                    @onclick="HandleClick"
-                >
+                    @onclick="HandleSignUp">
                     Register Account
                 </button>
+                }
             </div>
             <hr class="mb-2 border-t" />
             <div class="text-center pt-1">
@@ -81,6 +93,40 @@
     private string? Username {get;set;} 
     private string? Email {get;set;} 
     private string? Password {get;set;}
+    private bool IsLoading {get; set;} = false;
+
+    private async void HandleSignUp() {
+        string apiUrl = "http://localhost:5227/api/Register";
+        var loginData = new{Username, Email, Password};
+        IsLoading = true;
+        StateHasChanged();
+
+        try {
+            var signupJson = new StringContent(JsonSerializer.Serialize(loginData), System.Text.Encoding.UTF8, "application/json");
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Post,
+                RequestUri = new Uri(apiUrl),
+                Content = signupJson
+            };
+            HttpResponseMessage response = await Http.SendAsync(request);
+            IsLoading = false;
+
+            if (response.IsSuccessStatusCode) {
+                IsLoading = false;
+                Navigation.NavigateTo("/login");
+            } else {
+                IsLoading = false;
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex) {
+            IsLoading = false;
+            StateHasChanged();
+            Console.WriteLine(ex.Message);
+        }
+
+    }
 
     private void HandleClick() {
         Console.WriteLine(Username);

@@ -42,7 +42,7 @@ public class UserController: BaseController
         {
             await _repository.Users.Add(userData);
             await _repository.SaveChangesAsync();
-            return Ok(userData);
+            return Ok("success");
         }
         catch (Exception e)
         {
@@ -96,11 +96,11 @@ public class UserController: BaseController
             await addRefreshToken;
             await _repository.SaveChangesAsync();
 
-            return Ok(newToken);
+            return Ok(new { token = newToken, userId });
         }
         string token = _jwt.CreateToken(userId);
 
-        return Ok(token);
+        return Ok(new{token, userId});
     }
 
     [HttpPost("RefreshToken")]

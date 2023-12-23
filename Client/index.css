@@ -9,12 +9,6 @@
         letter-spacing: 0.035em;
         height: 100%;
     }
-
-    @font-face {
-        font-family: Inter;
-        src: url('../fonts/Inter.ttf') format('truetype');
-        font-display: swap;
-    }
 }
 
 .landing-gradient-text {
@@ -43,7 +37,6 @@
 }
 
 :root {
-    font-family: Inter, sans-serif;
     box-sizing: border-box;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
