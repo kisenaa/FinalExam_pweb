@@ -5,7 +5,15 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
+    <BlazorEnableTimeZoneSupport>false</BlazorEnableTimeZoneSupport>
+    <PublishTrimmed>true</PublishTrimmed>
+    <BlazorEnableCompression>true</BlazorEnableCompression>
+    <InvariantGlobalization>true</InvariantGlobalization>
+	  <BlazorWasmPrerenderingEnvironment>Production</BlazorWasmPrerenderingEnvironment>
+	  <BlazorWebAssemblyPreserveCollationData>false</BlazorWebAssemblyPreserveCollationData>
+	  <BlazorWasmPrerenderingDeleteLoadingContents>true</BlazorWasmPrerenderingDeleteLoadingContents>
+	  <BlazorWasmPrerenderingMode>WebAssemblyPrerendered</BlazorWasmPrerenderingMode>
+	  <BlazorWasmPrerenderingUrlPathToExplicitFetch>/dashboard</BlazorWasmPrerenderingUrlPathToExplicitFetch>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,11 +23,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
   </ItemGroup>
-
-  <ItemGroup>
-    <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
-  </ItemGroup>
-
+  
   <ItemGroup>
     <_ContentIncludedByDefault Remove="wwwroot\css\bootstrap\bootstrap.min.css" />
     <_ContentIncludedByDefault Remove="wwwroot\css\bootstrap\bootstrap.min.css.map" />
