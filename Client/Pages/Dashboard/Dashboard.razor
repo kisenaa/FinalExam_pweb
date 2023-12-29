@@ -1,8 +1,9 @@
 @page "/dashboard"
+@attribute [Authorize]
 @layout NullLayout
+@inject NavigationManager Navigation
 @inject ILocalStorageService LocalStorage
-@inject PersistentComponentState ApplicationState
-@using Client.Models
+@inject AuthenticationStateProvider Authentications
 
 <div class="h-screen w-screen bg-[#faebd7]">
     <!-- Navbar Section -->
@@ -50,7 +51,11 @@
                     </div>
 
                     <a href="/">
-                        <button class="ml-4 bg-red-500 hover:brightness-90 text-white p-2 rounded-md font-medium" onclick="window.k">Sign Out</button>
+                        <button class="ml-4 bg-red-500 hover:brightness-90 text-white p-2 rounded-md font-medium" 
+                                @onclick:preventDefault="true"                    
+                                @onclick="@(async () => await HandleSignOut())">
+                            Sign Out
+                        </button>
                     </a>
 
                 </div>
@@ -60,156 +65,24 @@
     </nav>
 
     <div class="h-screen w-screen bg-[#faebd7] text-center">
-
+        
         <div class="mb-3 bg-[#ffe4c4] p-6 text-3xl font-bold">
             ToDo List
         </div>
-
-        <form class="mx-auto my-7 flex max-w-[92vw] flex-row justify-center text-left outline-none md:w-[850px]"
-              @onsubmit:preventDefault="true"
-              @onsubmit="HandleSubmit">
-            <input class="mx-1 my-0 box-border rounded-md border-none px-7 py-2 text-left outline-none sm:min-w-[310px]"
-                   name="title"
-                   type="text"
-                   placeholder="Enter Title"
-                   @bind="@Title"
-                   @oninput="@((e) => {Title=(string)e.Value!;})" />
-            <input class="mx-1 my-0 box-border rounded-md border-none px-4 py-2 text-left outline-none sm:w-[450px]"
-                   name="description"
-                   type="text"
-                   placeholder="Enter Description"
-                   @bind="@Description"
-                   @oninput="@((e) => {Description=(string)e.Value!;})" />
-            <button class=" mx-1 my-0 rounded-md border-none bg-[#49ff58] px-6 py-3"
-                    type="submit">
-                Add
-            </button>
-        </form>
-
-        <div class="m-auto mt-[55px] flex max-w-[68vw] flex-wrap rounded-md p-[15px]">
-            @if (Todolists != null)
-                @foreach (var (todo, index) in Todolists.Select((item, index) => (item, index)))
-                {
-                    <div class="m-[5px] flex justify-between rounded-lg bg-[#ffe4c4] text-left" style="flex: 1 0 40%">
-                        <div class="ml-6 px-0 py-[15px]">
-                            <div class="@(todo.IsFinished == true ? "line-through" : "") mb-2 text-lg font-bold capitalize text-black">
-                                @todo.Title
-                            </div>
-
-                            <div class="@(todo.IsFinished == true ? "line-through" : "") text-black">
-                                @todo.Description
-                            </div>
-                        </div>
-
-                        <div class="box-border flex h-full flex-col justify-around gap-2 px-[10x] py-[15px]"
-                             style="border-left: 1px solid #8b8b8b;">
-                            <button class="mx-4 my-0 flex cursor-pointer rounded border-none bg-white p-2 align-middle text-[#27ce4b] outline-none hover:bg-[#27ce4b] hover:text-white"
-                                    @onclick:preventDefault="true"
-                                    @onclick="@(() => {HandleFinished(index);})">
-                                <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="18" width="18" xmlns="http://www.w3.org/2000/svg"><path fill="none" d="M0 0h24v24H0z"></path><path d="M18 7l-1.41-1.41-6.34 6.34 1.41 1.41L18 7zm4.24-1.41L11.66 16.17 7.48 12l-1.41 1.41L11.66 19l12-12-1.42-1.41zM.41 13.41L6 19l1.41-1.41L1.83 12 .41 13.41z"></path></svg>
-                            </button>
-                            <button class="mx-4 my-0 flex cursor-pointer rounded border-none bg-white p-2 align-middle text-blue-500 outline-none hover:bg-blue-500 hover:text-white">
-                                <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="18" width="18" xmlns="http://www.w3.org/2000/svg"><path d="m16 2.012 3 3L16.713 7.3l-3-3zM4 14v3h3l8.299-8.287-3-3zm0 6h16v2H4z"></path></svg>
-                            </button>
-                            <button class="mx-4 my-0 flex cursor-pointer rounded border-none bg-white p-2 align-middle text-red-600 outline-none hover:bg-[#ce2727] hover:text-white"
-                                    @onclick:preventDefault="true"
-                                    @onclick="@(() => {HandleRemove(index);})">
-                                <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="18" width="18" xmlns="http://www.w3.org/2000/svg"><path fill="none" d="M0 0h24v24H0z"></path><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"></path></svg>
-                            </button>
-                        </div>
-                    </div>
-                }
-        </div>
+        
+        <TodolistComponent/>
     </div>
 </div>
 
-@code {
-    private string? Title { get; set; }
-    private string? Description { get; set; }
-    private List<Todolist>? Todolists { get; set; }
-    private PersistingComponentStateSubscription _persistingSubscription;
-
-    private Task PersistTodo()
+@code
+{
+    private async Task HandleSignOut()
     {
-        ApplicationState.PersistAsJson("todoData", Todolists);
-
-        return Task.CompletedTask;
+        var jwt =  LocalStorage.RemoveItemAsync("jwt_final_exams");
+        var userId = LocalStorage.RemoveItemAsync("userId_final_exams");
+        await jwt;
+        await userId;
+        await Authentications.GetAuthenticationStateAsync();
+        Navigation.NavigateTo("/");
     }
-
-    private async void HandleSubmit()
-    {
-        var newTodo = new Todolist
-        {
-            Title = Title,
-            Description = Description,
-            IsFinished = false
-        };
-        // Reset title annd description
-        Title = string.Empty; Description = string.Empty;
-        // Add todolist
-        Todolists ??= new List<Todolist>();
-        Todolists.Add(newTodo);
-
-        await LocalStorage.SetItemAsync("Todolist_exams", Todolists);
-    }
-
-    private async void HandleFinished(int index)
-    {
-        if (Todolists != null)
-        {
-            bool? isFinished = Todolists[index].IsFinished;
-            Todolists[index].IsFinished = !isFinished;
-        }
-        await LocalStorage.SetItemAsync("Todolist_exams", Todolists);
-    }
-
-    private async void HandleRemove(int index)
-    {
-        Todolists?.RemoveAt(index);
-        await LocalStorage.SetItemAsync("Todolist_exams", Todolists);
-    }
-
-    protected override async Task<Task> OnAfterRenderAsync(bool firstRender)
-    {
-        await base.OnAfterRenderAsync(firstRender);
-        if (firstRender)
-        {
-            _persistingSubscription = ApplicationState.RegisterOnPersisting(PersistTodo);
-            if (ApplicationState.TryTakeFromJson<List<Todolist>?>("todoData", out var todolists))
-            {
-                try
-                {
-                    Todolists = todolists;
-                    StateHasChanged();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-            }
-            else
-            {
-                try
-                {
-                    var lists = await LocalStorage.GetItemAsync<List<Todolist>?>("Todolist_exams");
-                    if (lists != null)
-                    {
-                        Todolists = lists;
-                    }
-                    StateHasChanged();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-            }
-        }
-        return Task.CompletedTask;
-    }
-
-    public void Dispose()
-    {
-        _persistingSubscription.Dispose();
-    }
-
 }

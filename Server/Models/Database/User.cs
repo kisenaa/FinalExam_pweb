@@ -5,6 +5,10 @@ namespace Server.Models.Database;
 
 public class User
 {
+    public User()
+    {
+        Todolists = new HashSet<Todolist>();
+    }
     [Required, Column(TypeName = "char(27)")]
     public string UserId { get; set; } = null!;
     
@@ -18,4 +22,6 @@ public class User
     public Memory<byte> PasswordHash { get; set; } = null!;
     // One to One Dependent Relationship
     public virtual RefreshToken? RefreshToken { get; set; }
+    // One to many Dependent Relationship
+    public ICollection<Todolist> Todolists { get; set; }
 }
