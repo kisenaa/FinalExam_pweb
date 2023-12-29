@@ -10,6 +10,4 @@ public class TodolistReq
     public string Description { get; set; } = string.Empty;
     [Required]
     public bool IsFinished { get; set; }
-    [Required]
-    public string UserId { get; set; } = null!;
 }

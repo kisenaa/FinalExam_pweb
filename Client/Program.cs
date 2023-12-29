@@ -1,9 +1,9 @@
+global using Microsoft.AspNetCore.Components.Authorization;
+global using Blazored.LocalStorage;
 using Client;
 using Client.Utils;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using Blazored.LocalStorage;
-using Microsoft.AspNetCore.Components.Authorization;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
@@ -22,5 +22,7 @@ static void ConfigureServices(IServiceCollection services, string baseAddress)
     services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(baseAddress) });
     services.AddBlazoredLocalStorage();
     services.AddScoped<AuthenticationStateProvider, Authentication>();
+    services.AddScoped<Authentication>();
     services.AddAuthorizationCore();
 }
+

@@ -68,8 +68,6 @@
 @code {
     private string? Title { get; set; }
     private string? Description { get; set; }
-    private string Jwt { get; set; } = string.Empty;
-    private string UserId { get; set; } = string.Empty;
     private List<Todolist>? Todolists { get; set; }
     private PersistingComponentStateSubscription _persistingSubscription;
 
@@ -86,7 +84,6 @@
             title = Title,
             description = Description,
             isFinished = false,
-            userId = UserId
         };
         var content = new StringContent(JsonSerializer.Serialize(newTodo), System.Text.Encoding.UTF8, "application/json");
         var request = new HttpRequestMessage
@@ -95,7 +92,6 @@
             RequestUri = new Uri($"http://localhost:5227/api/todo/addTodo"),
             Content = content
         };
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Jwt);
         using var response = await Http.SendAsync(request);
         if (response.IsSuccessStatusCode)
         {
@@ -129,7 +125,6 @@
                 RequestUri = new Uri($"http://localhost:5227/api/todo/editTodo"),
                 Content = content
             };
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Jwt);
 
             using HttpResponseMessage response = await Http.SendAsync(request);
             if (response.IsSuccessStatusCode)
@@ -151,7 +146,6 @@
             RequestUri = new Uri($"http://localhost:5227/api/todo/removeTodo"),
             Content = content
         };
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Jwt);
 
         using var response = await Http.SendAsync(request);
         if (response.IsSuccessStatusCode)
@@ -162,11 +156,10 @@
         }
     }
     
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnInitializedAsync()
     {
-        await base.OnAfterRenderAsync(firstRender);
-        if (firstRender)
-        {
+        await base.OnInitializedAsync();
+       
             _persistingSubscription = ApplicationState.RegisterOnPersisting(PersistTodo);
             if (ApplicationState.TryTakeFromJson<List<Todolist>?>("todoData", out var todolists))
             {
@@ -175,17 +168,11 @@
             }
             else
             { 
-                UserId = (await LocalStorage.GetItemAsync<string>("userId_final_exams"));
-                Jwt = await LocalStorage.GetItemAsync<string>("jwt_final_exams");
-                
-                if (UserId != null)
-                {
                     var request = new HttpRequestMessage
                     {
                         Method = HttpMethod.Get,
-                        RequestUri = new Uri($"http://localhost:5227/api/todo/getTodo").AddParameter(("userId", UserId)),
+                        RequestUri = new Uri($"http://localhost:5227/api/todo/getTodo"),
                     };
-                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Jwt);
                     request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 
                     using (var response = await Http.SendAsync(request))
@@ -198,8 +185,6 @@
                             StateHasChanged();
                         }
                     }
-                }
-            }
         }
     }
 

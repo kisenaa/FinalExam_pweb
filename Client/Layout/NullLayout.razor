@@ -1,2 +1,15 @@
 ﻿@inherits LayoutComponentBase
+@inject AuthenticationStateProvider Authentications
+
 @Body
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
+        {
+            await Authentications.GetAuthenticationStateAsync();
+        }
+    }
+}

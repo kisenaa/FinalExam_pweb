@@ -1,8 +1,5 @@
 @page "/login"
-@using Microsoft.AspNetCore.Components.Authorization
-@using Microsoft.AspNetCore.Authorization
 @attribute [AllowAnonymous]
-@layout NullLayout
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider Authentications
@@ -92,10 +89,8 @@
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri("http://localhost:5227/api/Login"),
+                RequestUri = new Uri("http://localhost:5227/api/user/Login"),
                 Content = loginJson,
-                
-                
             };
             request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
             using var response = await Http.SendAsync(request);

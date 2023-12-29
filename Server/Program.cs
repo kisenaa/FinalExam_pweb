@@ -83,7 +83,7 @@ builder.Services.AddResponseCompression(options =>
 var app = builder.Build();
 app.UseCors(options =>
 {
-    options.WithOrigins("http://localhost:5123", "http://localhost").AllowAnyMethod().AllowAnyHeader().AllowCredentials();
+    options.WithOrigins("http://localhost:5123", "http://localhost", "https://finalexam-johannes.netlify.app").AllowAnyMethod().AllowAnyHeader().AllowCredentials();
 });
 
 // Configure the HTTP request pipeline.

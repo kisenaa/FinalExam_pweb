@@ -1,44 +1,53 @@
-﻿using System.Net.Http.Headers;
+﻿using System.Diagnostics;
+using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text.Json;
-using Microsoft.AspNetCore.Components.Authorization;
 
 namespace Client.Utils;
 
 public class Authentication: AuthenticationStateProvider
 {
+    private readonly ILocalStorageService _localStorage;
     private readonly HttpClient _http;
-    private string _token = string.Empty;
-    private string _userId = string.Empty;
-    
-    public Authentication(HttpClient http)
+
+    public Authentication(ILocalStorageService localStorage, HttpClient http)
     {
+        _localStorage = localStorage;
         _http = http;
     }
-
-    public void SetAuthProperty(string token, string userId)
-    {
-        _token = token;
-        _userId = userId;
-    }
     
-    public override Task<AuthenticationState> GetAuthenticationStateAsync()
+    public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
+        string userId;
+        string token;
+        try
+        {
+            userId = (await _localStorage.GetItemAsStringAsync("userId_final_exams"));
+            token = (await _localStorage.GetItemAsStringAsync("jwt_final_exams"));
+        }
+        catch (Exception ex)
+        {
+            return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+        }
+            
         var identity = new ClaimsIdentity();
         _http.DefaultRequestHeaders.Authorization = null;
+        _http.DefaultRequestHeaders.Remove("X-Userid");
         
-        if (!string.IsNullOrEmpty(_token))
+        if (!string.IsNullOrEmpty(token))
         {
-            identity = new ClaimsIdentity(ParseClaimsFromJwt(_token), "jwt");
+            userId = userId.Trim('\"');
+            token = token.Trim('\"');
+            identity = new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt");
             _http.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("Bearer", _token.Replace("\"", ""));
-            _http.DefaultRequestHeaders.Add("x-userId", _userId);
+                new AuthenticationHeaderValue("Bearer", token.Replace("\"", ""));
+            _http.DefaultRequestHeaders.Add("X-Userid", userId);
         }
         
         var state = new AuthenticationState(new ClaimsPrincipal(identity));
         NotifyAuthenticationStateChanged(Task.FromResult(state));
     
-        return Task.FromResult(state);
+        return (state);
     }
 
     private static IEnumerable<Claim> ParseClaimsFromJwt(string jwt)

@@ -1,7 +1,9 @@
 @page "/dashboard"
-@using Microsoft.AspNetCore.Authorization
-@attribute [Authorize(Roles = "Iron Man")]
+@attribute [Authorize]
 @layout NullLayout
+@inject NavigationManager Navigation
+@inject ILocalStorageService LocalStorage
+@inject AuthenticationStateProvider Authentications
 
 <div class="h-screen w-screen bg-[#faebd7]">
     <!-- Navbar Section -->
@@ -49,7 +51,11 @@
                     </div>
 
                     <a href="/">
-                        <button class="ml-4 bg-red-500 hover:brightness-90 text-white p-2 rounded-md font-medium" onclick="window.k">Sign Out</button>
+                        <button class="ml-4 bg-red-500 hover:brightness-90 text-white p-2 rounded-md font-medium" 
+                                @onclick:preventDefault="true"                    
+                                @onclick="@(async () => await HandleSignOut())">
+                            Sign Out
+                        </button>
                     </a>
 
                 </div>
@@ -67,3 +73,16 @@
         <TodolistComponent/>
     </div>
 </div>
+
+@code
+{
+    private async Task HandleSignOut()
+    {
+        var jwt =  LocalStorage.RemoveItemAsync("jwt_final_exams");
+        var userId = LocalStorage.RemoveItemAsync("userId_final_exams");
+        await jwt;
+        await userId;
+        await Authentications.GetAuthenticationStateAsync();
+        Navigation.NavigateTo("/");
+    }
+}

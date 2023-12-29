@@ -16,8 +16,12 @@ public class TodoController: BaseController
     }
 
     [HttpGet("getTodo")]
-    public async Task<IActionResult> GetTodo([FromQuery]string userId)
+    public async Task<IActionResult> GetTodo([FromHeader(Name = "X-Userid")] string userId )
     {
+        if (string.IsNullOrEmpty(userId))
+        {
+            return BadRequest("X-userId header is missing");
+        }
         var todolist = await _repository.Todolist.GetByUserId(userId);
         if (todolist.IsNullOrEmpty())
         {
@@ -29,12 +33,18 @@ public class TodoController: BaseController
     [HttpPost("addTodo")]
     public async Task<IActionResult> AddTodo([FromBody] TodolistReq todolist)
     {
+        string? userId = HttpContext.Request.Headers["X-Userid"];
+        if (string.IsNullOrEmpty(userId))
+        {
+            return BadRequest("X-userId header is missing");
+        }
+        
         var todo = new Todolist()
         {
             Title = todolist.Title,
             Description = todolist.Description,
             IsFinished = todolist.IsFinished,
-            UserId = todolist.UserId
+            UserId = userId
         };
         await _repository.Todolist.Add(todo);
         await _repository.SaveChangesAsync();

@@ -1,7 +1,5 @@
 @page "/sign-up"
-@using Microsoft.AspNetCore.Authorization
 @attribute [AllowAnonymous]
-@layout NullLayout
 @inject HttpClient Http
 @inject NavigationManager Navigation
 
@@ -106,7 +104,7 @@
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri("http://localhost:5227/api/Register"),
+                RequestUri = new Uri("http://localhost:5227/api/user/Register"),
                 Content = signupJson
             };
             using var response = await Http.SendAsync(request);
