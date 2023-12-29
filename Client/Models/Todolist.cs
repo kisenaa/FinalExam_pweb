@@ -3,7 +3,8 @@ namespace Client.Models;
 
 public class Todolist
 {
-    public string? Title {get; set;}
-    public string? Description {get; set;} 
-    public bool? IsFinished {get; set;}
+    public int? id { get; set; }
+    public string? title {get; set;}
+    public string? description {get; set;} 
+    public bool? isFinished {get; set;}
 }

@@ -1,4 +1,6 @@
 @page "/sign-up"
+@using Microsoft.AspNetCore.Authorization
+@attribute [AllowAnonymous]
 @layout NullLayout
 @inject HttpClient Http
 @inject NavigationManager Navigation
@@ -42,7 +44,7 @@
 
             <div class="mb-4 md:flex">
                 <div class="mb-4 md:mr-2 md:mb-0">
-                    <label class="block mb-2 text-sm font-bold text-gray-700" for="password">
+                    <label class="block mb-2 text-sm font-bold text-gray-700" for="psd">
                         Password
                     </label>
                     <input
@@ -96,24 +98,23 @@
     private bool IsLoading {get; set;} = false;
 
     private async void HandleSignUp() {
-        string apiUrl = "http://localhost:5227/api/Register";
         var loginData = new{Username, Email, Password};
         IsLoading = true;
         StateHasChanged();
-
         try {
             var signupJson = new StringContent(JsonSerializer.Serialize(loginData), System.Text.Encoding.UTF8, "application/json");
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri(apiUrl),
+                RequestUri = new Uri("http://localhost:5227/api/Register"),
                 Content = signupJson
             };
-            HttpResponseMessage response = await Http.SendAsync(request);
+            using var response = await Http.SendAsync(request);
             IsLoading = false;
 
             if (response.IsSuccessStatusCode) {
                 IsLoading = false;
+                response.Dispose();
                 Navigation.NavigateTo("/login");
             } else {
                 IsLoading = false;
@@ -127,11 +128,4 @@
         }
 
     }
-
-    private void HandleClick() {
-        Console.WriteLine(Username);
-        Console.WriteLine(Email);
-        Console.WriteLine(Password);
-    }
-
 } 

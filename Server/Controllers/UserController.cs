@@ -12,7 +12,7 @@ using Server.Utils;
 namespace Server.Controllers;
 
 [ApiController]
-[Route("api/")]
+[Route("api/user/")]
 public class UserController: BaseController
 {
     private static readonly int Iterations = 2;
@@ -137,42 +137,6 @@ public class UserController: BaseController
         await _repository.SaveChangesAsync();
 
         return Ok(newToken);
-    }
-    
-    [HttpPost("addTodo")]
-    public IActionResult addTodo()
-    {
-        return Ok("Hello Word");
-    }
-    
-    [HttpPut("editTodo")]
-    public IActionResult editTodo()
-    {
-        return Ok("Hello Word");
-    }
-    
-    [HttpGet("getTodo")]
-    public IActionResult getTodo()
-    {
-        return Ok("Hello Word");
-    }
-    
-    [HttpDelete("deleteTodo")]
-    public IActionResult deleteTodo()
-    {
-        return Ok("Hello Word");
-    }
-    
-    [HttpDelete("deleteAccount")]
-    public IActionResult deleteTodos()
-    {
-        return Ok("Hello Word");
-    }
-    
-    [HttpGet("test")]
-    public IActionResult Test()
-    {
-        return Ok("Hello Word");
     }
     
     [HttpGet("GetRoles")]
