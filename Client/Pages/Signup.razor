@@ -104,7 +104,7 @@
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri("http://localhost:5227/api/user/Register"),
+                RequestUri = new Uri("https://original-storm-318402.as.r.appspot.com/api/user/Register"),
                 Content = signupJson
             };
             using var response = await Http.SendAsync(request);

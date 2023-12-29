@@ -1,7 +1,5 @@
 ﻿@inject ILocalStorageService LocalStorage
 @inject PersistentComponentState ApplicationState
-@using Client.Models
-@using Client.Utils
 @inject HttpClient Http
 
 <form class="mx-auto my-7 flex max-w-[92vw] flex-row justify-center text-left outline-none md:w-[850px]"
@@ -89,7 +87,7 @@
         var request = new HttpRequestMessage
         {
             Method = HttpMethod.Post,
-            RequestUri = new Uri($"http://localhost:5227/api/todo/addTodo"),
+            RequestUri = new Uri("https://original-storm-318402.as.r.appspot.com/api/todo/addTodo"),
             Content = content
         };
         using var response = await Http.SendAsync(request);
@@ -122,7 +120,7 @@
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri($"http://localhost:5227/api/todo/editTodo"),
+                RequestUri = new Uri("https://original-storm-318402.as.r.appspot.com/api/todo/editTodo"),
                 Content = content
             };
 
@@ -143,7 +141,7 @@
         var request = new HttpRequestMessage
         {
             Method = HttpMethod.Delete,
-            RequestUri = new Uri($"http://localhost:5227/api/todo/removeTodo"),
+            RequestUri = new Uri("https://original-storm-318402.as.r.appspot.com/api/todo/removeTodo"),
             Content = content
         };
 
@@ -171,7 +169,7 @@
                     var request = new HttpRequestMessage
                     {
                         Method = HttpMethod.Get,
-                        RequestUri = new Uri($"http://localhost:5227/api/todo/getTodo"),
+                        RequestUri = new Uri("https://original-storm-318402.as.r.appspot.com/api/todo/getTodo"),
                     };
                     request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 

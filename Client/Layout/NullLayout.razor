@@ -1,6 +1,6 @@
 ﻿@inherits LayoutComponentBase
+@inject ILocalStorageService LocalStorage
 @inject AuthenticationStateProvider Authentications
-
 @Body
 
 @code {
@@ -9,6 +9,10 @@
         await base.OnAfterRenderAsync(firstRender);
         if (firstRender)
         {
+            var token = await LocalStorage.GetItemAsStringAsync("jwt_final_exams");
+            var userId =  await LocalStorage.GetItemAsStringAsync("userId_final_exams");
+     
+            Authentication.SetAuthenticationProp(userId, token);
             await Authentications.GetAuthenticationStateAsync();
         }
     }

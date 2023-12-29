@@ -3,7 +3,6 @@
 @layout NullLayout
 @inject NavigationManager Navigation
 @inject ILocalStorageService LocalStorage
-@inject AuthenticationStateProvider Authentications
 
 <div class="h-screen w-screen bg-[#faebd7]">
     <!-- Navbar Section -->
@@ -82,7 +81,6 @@
         var userId = LocalStorage.RemoveItemAsync("userId_final_exams");
         await jwt;
         await userId;
-        await Authentications.GetAuthenticationStateAsync();
         Navigation.NavigateTo("/");
     }
 }

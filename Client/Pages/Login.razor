@@ -2,8 +2,8 @@
 @attribute [AllowAnonymous]
 @inject HttpClient Http
 @inject NavigationManager Navigation
-@inject AuthenticationStateProvider Authentications
 @inject ILocalStorageService LocalStorage
+@inject AuthenticationStateProvider Authentications
 
 <div class="h-screen w-screen relative flex justify-center items-center bg-cover bg-no-repeat bg-center backdrop-blur-sm" 
     style="background-image: url(images/bg.webp);">
@@ -89,7 +89,7 @@
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri("http://localhost:5227/api/user/Login"),
+                RequestUri = new Uri("https://original-storm-318402.as.r.appspot.com/api/user/Login"),
                 Content = loginJson,
             };
             request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
@@ -104,6 +104,7 @@
                 response.Dispose();
                 await LocalStorage.SetItemAsync("jwt_final_exams", responseObj?.token);
                 await LocalStorage.SetItemAsync("userId_final_exams", responseObj?.userId);
+                Authentication.SetAuthenticationProp(responseObj?.userId!, responseObj?.token!);
                 await Authentications.GetAuthenticationStateAsync();
                 Navigation.NavigateTo("/dashboard");
             }
