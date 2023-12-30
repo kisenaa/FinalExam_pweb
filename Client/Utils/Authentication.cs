@@ -6,41 +6,54 @@ namespace Client.Utils;
 
 public class Authentication: AuthenticationStateProvider
 {
+    private readonly GlobalAuth _globalAuth;
     private readonly HttpClient _http;
-    private static string _userId = string.Empty;
     private static string _token = string.Empty;
-
-    public Authentication(HttpClient http)
+    private static string _userId = string.Empty;
+    
+    public Authentication(HttpClient http, GlobalAuth globalAuth)
     {
         _http = http;
+        _globalAuth = globalAuth;
     }
 
-    public static void SetAuthenticationProp(string userId, string token)
+    public static void SetAuthProperty(string token, string userId)
     {
-        _userId = userId;
         _token = token;
+        _userId = userId;
     }
     
     public override Task<AuthenticationState> GetAuthenticationStateAsync()
     {
         var identity = new ClaimsIdentity();
-        _http.DefaultRequestHeaders.Authorization = null;
-        _http.DefaultRequestHeaders.Remove("X-Userid");
-        
-        if (!string.IsNullOrEmpty(_token))
+        if (!string.IsNullOrEmpty(_globalAuth.JwtToken) && !string.IsNullOrEmpty(_globalAuth.UserId))
         {
-            _userId = _userId.Trim('\"');
-            _token = _token.Trim('\"');
+            _token = _globalAuth.JwtToken;
+            _userId = _globalAuth.UserId;
             identity = new ClaimsIdentity(ParseClaimsFromJwt(_token), "jwt");
             _http.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("Bearer", _token.Replace("\"", ""));
+                new AuthenticationHeaderValue("Bearer",_token.Replace("\"", ""));
             _http.DefaultRequestHeaders.Add("X-Userid", _userId);
+            var state = new AuthenticationState(new ClaimsPrincipal(identity));
+            NotifyAuthenticationStateChanged(Task.FromResult(state));
+            return Task.FromResult(state);
+        }
+
+        if (!string.IsNullOrEmpty(_token))
+        {
+            identity = new ClaimsIdentity(ParseClaimsFromJwt(_token), "jwt");
+            _http.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer",_token.Replace("\"", ""));
+            _http.DefaultRequestHeaders.Add("X-Userid", _userId);
+            var state = new AuthenticationState(new ClaimsPrincipal(identity));
+            NotifyAuthenticationStateChanged(Task.FromResult(state));
+            return Task.FromResult(state);
         }
         
-        var state = new AuthenticationState(new ClaimsPrincipal(identity));
-        NotifyAuthenticationStateChanged(Task.FromResult(state));
+        var states = new AuthenticationState(new ClaimsPrincipal(identity));
+        NotifyAuthenticationStateChanged(Task.FromResult(states));
     
-        return Task.FromResult((state));
+        return Task.FromResult(states);
     }
 
     private static IEnumerable<Claim> ParseClaimsFromJwt(string jwt)

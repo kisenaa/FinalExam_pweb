@@ -1,9 +1,11 @@
 @page "/login"
 @attribute [AllowAnonymous]
+@layout NullLayout
 @inject HttpClient Http
 @inject NavigationManager Navigation
-@inject ILocalStorageService LocalStorage
+@inject GlobalAuth GlobalAuths
 @inject AuthenticationStateProvider Authentications
+@inject ILocalStorageService LocalStorage
 
 <div class="h-screen w-screen relative flex justify-center items-center bg-cover bg-no-repeat bg-center backdrop-blur-sm" 
     style="background-image: url(images/bg.webp);">
@@ -104,9 +106,11 @@
                 response.Dispose();
                 await LocalStorage.SetItemAsync("jwt_final_exams", responseObj?.token);
                 await LocalStorage.SetItemAsync("userId_final_exams", responseObj?.userId);
-                Authentication.SetAuthenticationProp(responseObj?.userId!, responseObj?.token!);
+                GlobalAuths.JwtToken = responseObj?.token!.Trim('\"')!;
+                GlobalAuths.UserId = responseObj?.userId!.Trim('\"')!;
+                Authentication.SetAuthProperty(responseObj?.token!, responseObj?.userId!);
                 await Authentications.GetAuthenticationStateAsync();
-                Navigation.NavigateTo("/dashboard");
+                Navigation.NavigateTo("/dashboard");    
             }
             else
             {

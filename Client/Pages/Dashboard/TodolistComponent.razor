@@ -1,6 +1,8 @@
 ﻿@inject ILocalStorageService LocalStorage
 @inject PersistentComponentState ApplicationState
 @inject HttpClient Http
+@inject GlobalAuth GlobalAuths;
+@inject NavigationManager Navigation
 
 <form class="mx-auto my-7 flex max-w-[92vw] flex-row justify-center text-left outline-none md:w-[850px]"
     @onsubmit:preventDefault="true"
@@ -64,10 +66,14 @@
 </div>
 
 @code {
+    [CascadingParameter]
+    public bool? IsRendered { get; set; }
+
     private string? Title { get; set; }
     private string? Description { get; set; }
     private List<Todolist>? Todolists { get; set; }
-    private PersistingComponentStateSubscription _persistingSubscription;
+    private PersistingComponentStateSubscription? _persistingSubscription;
+
 
     private Task PersistTodo()
     {
@@ -154,41 +160,48 @@
         }
     }
     
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await base.OnInitializedAsync();
-       
-            _persistingSubscription = ApplicationState.RegisterOnPersisting(PersistTodo);
-            if (ApplicationState.TryTakeFromJson<List<Todolist>?>("todoData", out var todolists))
+        await base. OnAfterRenderAsync(firstRender);
+        if(!firstRender) return;
+        var userId = await LocalStorage.GetItemAsStringAsync("userId_final_exams");
+        if (string.IsNullOrEmpty(userId))
+        {
+            Navigation.NavigateTo("/UnauthorizedPageError");
+        }
+        _persistingSubscription = ApplicationState.RegisterOnPersisting(PersistTodo);
+        if (ApplicationState.TryTakeFromJson<List<Todolist>?>("todoData", out var todolists))
+        {
+            Todolists = todolists;
+            StateHasChanged();
+        }
+        else
+        {
+            var request = new HttpRequestMessage
             {
-                    Todolists = todolists;
-                    StateHasChanged();
+                Method = HttpMethod.Get,
+                RequestUri = new Uri("https://original-storm-318402.as.r.appspot.com/api/todo/getTodo"),
+            };
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            request.Headers.Add("X-Userid", userId.Trim('\"'));
+            using (var response = await Http.SendAsync(request))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    await using (var stream = await response.Content.ReadAsStreamAsync())
+                    {
+                        var responseObj = await JsonSerializer.DeserializeAsync<List<Todolist>?>(stream);
+                        Todolists = responseObj;
+                        StateHasChanged();
+                    }      
+                }
             }
-            else
-            { 
-                    var request = new HttpRequestMessage
-                    {
-                        Method = HttpMethod.Get,
-                        RequestUri = new Uri("https://original-storm-318402.as.r.appspot.com/api/todo/getTodo"),
-                    };
-                    request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                
-                    using (var response = await Http.SendAsync(request))
-                    {
-                        response.EnsureSuccessStatusCode();
-                        await using (var stream = await response.Content.ReadAsStreamAsync())
-                        {
-                            var responseObj = await JsonSerializer.DeserializeAsync<List<Todolist>?>(stream);
-                            Todolists = responseObj;
-                            StateHasChanged();
-                        }
-                    }
         }
     }
-
+    
     public void Dispose()
     {
-        _persistingSubscription.Dispose();
+        _persistingSubscription?.Dispose();
     }
 
 }

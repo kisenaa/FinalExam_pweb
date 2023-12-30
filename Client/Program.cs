@@ -1,9 +1,10 @@
 global using Microsoft.AspNetCore.Components.Authorization;
-global using Client.Utils;
-global using Blazored.LocalStorage;
 using Client;
+using Client.Utils;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Blazored.LocalStorage;
+using Microsoft.AspNetCore.Components;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
@@ -19,9 +20,15 @@ await builder.Build().RunAsync();
 
 static void ConfigureServices(IServiceCollection services, string baseAddress)
 {
-    services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(baseAddress) });
+    services.AddSingleton(sp => new HttpClient { BaseAddress = new Uri(baseAddress) });
     services.AddBlazoredLocalStorage();
-    services.AddScoped<AuthenticationStateProvider, Authentication>();
+    services.AddSingleton<GlobalAuth>();
+    services.AddSingleton<AuthenticationStateProvider, Authentication>();
     services.AddAuthorizationCore();
+    services.AddCascadingValue(sp =>
+    {
+        bool IsRendered = false;
+        var source = new CascadingValueSource<bool>(IsRendered, isFixed: false);
+        return source;
+    });
 }
-

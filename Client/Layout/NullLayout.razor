@@ -1,19 +1,40 @@
 ﻿@inherits LayoutComponentBase
 @inject ILocalStorageService LocalStorage
 @inject AuthenticationStateProvider Authentications
-@Body
+@inject NavigationManager Navigation
+@inject GlobalAuth GlobalAuths;
 
-@code {
+<CascadingValue Value="@IsRendered">
+    @Body
+</CascadingValue>
+
+
+@code
+{
+    [CascadingParameter]
+    public bool? IsRendered { get; set; }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
         if (firstRender)
         {
             var token = await LocalStorage.GetItemAsStringAsync("jwt_final_exams");
-            var userId =  await LocalStorage.GetItemAsStringAsync("userId_final_exams");
-     
-            Authentication.SetAuthenticationProp(userId, token);
+            var userId = await LocalStorage.GetItemAsStringAsync("userId_final_exams");
+
+            if (string.IsNullOrEmpty(token))
+            {
+                Authentication.SetAuthProperty(token, userId);
+                var path = Navigation.Uri;
+                Console.WriteLine(path.Split('/').Last());
+                if (path.Split('/').Last() == "dashboard") Navigation.NavigateTo("/UnauthorizedPageError");
+                return;
+            }
+            GlobalAuths.JwtToken = token.Trim('\"');
+            GlobalAuths.UserId = userId.Trim('\"');
+            Authentication.SetAuthProperty(GlobalAuths.JwtToken, GlobalAuths.UserId);
             await Authentications.GetAuthenticationStateAsync();
         }
+        IsRendered = true;
     }
 }

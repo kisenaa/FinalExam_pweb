@@ -10,7 +10,7 @@ public class AppDbContext : DbContext
     public virtual required DbSet<User> Users { get; set; }
     public virtual required DbSet<RefreshToken> RefreshTokens { get; set; }
     
-    public virtual DbSet<Todolist> Todolists { get; set; }
+    public virtual required DbSet<Todolist> Todolists { get; set; }
     
     // Overrides Relationship
     protected override void OnModelCreating(ModelBuilder modelBuilder)

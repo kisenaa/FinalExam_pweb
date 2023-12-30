@@ -13,7 +13,7 @@
     <BlazorWebAssemblyPreserveCollationData>false</BlazorWebAssemblyPreserveCollationData>
     <BlazorWasmPrerenderingDeleteLoadingContents>true</BlazorWasmPrerenderingDeleteLoadingContents>
     <BlazorWasmPrerenderingMode>WebAssemblyPrerendered</BlazorWasmPrerenderingMode>
-    <BlazorWasmPrerenderingUrlPathToExplicitFetch>/dashboard</BlazorWasmPrerenderingUrlPathToExplicitFetch>
+    <BlazorWasmPrerenderingUrlPathToExplicitFetch>/UnauthorizedPageError</BlazorWasmPrerenderingUrlPathToExplicitFetch>
   </PropertyGroup>
 
   <ItemGroup>
